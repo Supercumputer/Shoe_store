@@ -1,0 +1,29 @@
+.boxContainer{
+    margin-top: 80px;
+}
+
+.aside{
+    border-right: 1px solid #ccc;
+}
+
+.box1{
+    margin-bottom: 20px;
+}
+
+.box1 p{
+    margin-bottom: 0;
+    font-size: 18px;
+    font-weight: 500;
+}
+.boxButton{
+    display: flex;
+    gap: 10px;
+}
+
+.fillter{
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+}

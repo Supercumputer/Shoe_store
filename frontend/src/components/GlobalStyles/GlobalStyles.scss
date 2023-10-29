@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+:root{
+    --black-color: #000;
+    --white-color: #fff;
+    --primary-color: #0D6EFD;
+    --red-color: rgb(255, 0, 0);
+    --gray-color: #686767;
+}
+
+
+*{
+    font-family: 'Roboto', sans-serif;
+}
+
+html ::-webkit-scrollbar {
+    border-radius: 0;
+    height: 8px;
+    width: 8px;
+}
+
+html ::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,.15);
+    border-radius: 4px;
+}
+
+html ::-webkit-scrollbar-track {
+    background-color: transparent;
+    border-radius: 0;
+}
+

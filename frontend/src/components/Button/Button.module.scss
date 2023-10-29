@@ -1,0 +1,14 @@
+.but{
+    border: 1px solid #000;
+    border-radius: 5px;
+}
+
+.but span{
+    font-size: 15px;
+    padding: 0 10px;
+}
+
+.active{
+    background: black;
+    color: #fff;
+}
