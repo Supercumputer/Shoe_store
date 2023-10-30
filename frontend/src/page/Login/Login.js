@@ -3,6 +3,11 @@ import styles from './Login.module.scss';
 import Img from '../../components/Img/Img';
 import Logo from '../../assets/image/logo.jpg';
 import { useState } from 'react';
+import { apiLogin } from '../../api/service';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { login } from '../../redux/authentication';
 const cx = classNames.bind(styles);
 
 function isEmail(value) {
@@ -16,8 +21,10 @@ function isPassWord(value) {
 }
 
 function Login() {
+    const dispatch = useDispatch();
+    const navigate = useNavigate()
     const [email, setEmail] = useState('');
-    const [password, setPassWord] = useState('');
+    const [passWord, setPassWord] = useState('');
 
     const valid = {
         isValidEmail: false,
@@ -26,15 +33,35 @@ function Login() {
 
     const [validation, setValidation] = useState(valid)
 
+    const logInApi = async (data) => {
+        try {
+            let res = await apiLogin(data)
+    
+            if(res && res.status === 200){
+                dispatch(login(res.data))
+                toast.success('Đăng nhập thành công.')
+                navigate('/')
+
+            }
+        } catch (error) {
+            toast.error(error.response?.data.message)
+        }
+    }
+
     const handlerLogin = () => {
         setValidation(valid)
-        if(email === '' && password === ''){
+        if(email === '' && passWord === ''){
             setValidation(vali => ({...valid, isValidEmail: true, isValidPassWord: true}))
+            return
         }else if(!isEmail(email)){
             setValidation(valid => ({...valid, isValidEmail: true}))
-        }else if(!isPassWord(password)){
+            return
+        }else if(!isPassWord(passWord)){
             setValidation(valid => ({...valid, isValidPassWord: true}))
+            return
         }
+        logInApi({email, passWord})
+       
     };
 
     return (
@@ -61,7 +88,7 @@ function Login() {
                         <div className="mb-3">
                             <input
                                 type="password"
-                                value={password}
+                                value={passWord}
                                 className={cx("form-control", {'is-invalid': validation.isValidPassWord})}
                                 onChange={(e) => setPassWord(e.target.value)}
                                 placeholder="Password"
