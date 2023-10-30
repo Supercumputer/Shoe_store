@@ -1,4 +1,5 @@
 const Users = require("../models/userModel");
+require('dotenv').config()
 const {
   checkEmail,
   hashPassword,
@@ -20,7 +21,7 @@ const register = async (req, res, next) => {
     let check = await checkEmail(email);
 
     if (check) {
-      return res.status(400).json({
+      return res.status(401).json({
         status: "failure",
         message: "Email already exists.",
       });
@@ -30,7 +31,7 @@ const register = async (req, res, next) => {
 
     await Users.create({
       ...req.body,
-      userName: `${req.body.lastName} ${req.body.firsName}`,
+      userName: `${req.body.lastName} ${req.body.firstName}`,
       passWord: newPassWord,
     });
 
@@ -38,6 +39,7 @@ const register = async (req, res, next) => {
       status: "success",
       message: "Account successfully created.",
     });
+
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -68,6 +70,8 @@ const login = async (req, res, next) => {
 
         let token = createToken(payload);
 
+        res.cookie('JWT', token, { maxAge: process.env.JWT_EXPIRESIN, httpOnly: true })
+
         return res.status(200).json({
           token: token,
           acount: {
@@ -75,13 +79,13 @@ const login = async (req, res, next) => {
           },
         });
       } else {
-        return res.status(404).json({
+        return res.status(401).json({
           status: "error",
           message: "Email or password incorrectly",
         });
       }
     } else {
-      return res.status(404).json({
+      return res.status(401).json({
         status: "error",
         message: "Email or password incorrectly",
       });
