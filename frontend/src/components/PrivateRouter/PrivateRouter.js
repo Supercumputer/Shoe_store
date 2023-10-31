@@ -1,13 +1,32 @@
-import { Outlet, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { login } from "../../redux/authentication";
+import { Outlet, Navigate} from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { login } from '../../redux/authentication';
+import { useEffect } from 'react';
+import { apiGetAcount } from '../../api/service';
+import Loading from '../Loading/Loading';
 
 function PrivateRouter() {
-   
-    const isLogIn = useSelector(state => state.auth.isLoggedIn)
+    const disPatch = useDispatch()
+    const {isLoading, auth} = useSelector((state) => state.auth);
+  
+    console.log(isLoading, auth)
 
-    return isLogIn ? <Outlet/> : <Navigate to='/login'/>
+    useEffect(() => {
+        getAcountApi();
+    }, []);
 
+    const getAcountApi = async () => {
+        try {
+            let res = await apiGetAcount();
+            if (res && res.status === 200) {
+                disPatch(login(res.data))
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    };
+    return isLoading ? <Loading/> : auth.isLoggedIn ? <Outlet /> : <Navigate to="/login" />
+      
 }
 
 export default PrivateRouter;

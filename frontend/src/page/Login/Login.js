@@ -39,19 +39,20 @@ function Login() {
     
             if(res && res.status === 200){
                 dispatch(login(res.data))
+                localStorage.setItem('jwt', res.data.token)
                 toast.success('Đăng nhập thành công.')
                 navigate('/')
 
             }
         } catch (error) {
-            toast.error(error.response?.data.message)
+            toast.error(error.response.data.message)
         }
     }
 
     const handlerLogin = () => {
         setValidation(valid)
         if(email === '' && passWord === ''){
-            setValidation(vali => ({...valid, isValidEmail: true, isValidPassWord: true}))
+            setValidation(vali => ({...vali, isValidEmail: true, isValidPassWord: true}))
             return
         }else if(!isEmail(email)){
             setValidation(valid => ({...valid, isValidEmail: true}))

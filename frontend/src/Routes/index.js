@@ -39,19 +39,5 @@ export const publicRouter = [
 
 export const privateRouter = [
    
-    {
-        path: '/',
-        component: Home,
-        layout: DefaultLayout
-    },
-    {
-        path: '/',
-        component: Home,
-        layout: DefaultLayout
-    },
-    {
-        path: '/',
-        component: Home,
-        layout: DefaultLayout
-    },
+    
 ]

@@ -95,4 +95,17 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login };
+const logout = (req, res, next) => {
+  try {
+    res.clearCookie('jwt')
+    return res.status(200).json({
+      message: 'Logout success'
+    })
+  } catch (error) {
+    return res.status(500).json({
+      message: 'error server'
+    })
+  }
+}
+
+module.exports = { register, login, logout };
