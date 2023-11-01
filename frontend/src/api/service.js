@@ -16,3 +16,10 @@ export const apiLogout = () => {
     return instance.get('/logout')
 }
 
+export const apiGetProducs = (search, page) => {
+    return instance.get(`/product/getallproduct?q=${search}&page=${page}`)
+}
+
+export const apiCreateProduct = () => {
+    return instance.get(`/product/createproduct`)
+}

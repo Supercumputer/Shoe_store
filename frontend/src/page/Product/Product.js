@@ -2,10 +2,61 @@ import classNames from 'classnames/bind';
 import styles from './Product.module.scss';
 import Button from '../../components/Button/Button';
 import BoxProduct from '../../components/BoxProduct/BoxProduct';
+import { useSelector, useDispatch } from 'react-redux';
+import { lisFroductFilter, count } from '../../redux/selecter';
+import { useEffect } from 'react';
+import { setProduct, setFilterSearch } from '../../redux/searchFilter';
+import { apiGetProducs } from '../../api/service';
+import ReactPaginate from 'react-paginate';
+import { useState } from 'react';
+
+
+import { v4 as uuidv4 } from 'uuid';
 
 const cx = classNames.bind(styles);
 
+const listBtn = ['Nike', 'Addidas', 'Puma', 'Jordan', 'Mlb'];
+
 function Product() {
+    const lisProduct = useSelector(lisFroductFilter);
+    const pageCount = useSelector(count);
+    const [lis, setList] = useState([])
+    console.log(lis)
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        callApiLisproduct(lis.join('&q='), 1);
+    }, [lis]);
+
+    const callApiLisproduct = async (search, page) => {
+        try {
+            let res = await apiGetProducs(search, page);
+            if (res && res.status === 200) {
+                dispatch(setProduct(res.data));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handlePageClick = (e) => {
+        let page = e.selected + 1;
+        callApiLisproduct('', page);
+    };
+
+    const handlerClick = (action) => {
+        
+        setList(state => {
+            let click = lis.includes(action)
+            if(click){
+                return lis.filter((item) => item !== action) 
+            }else{
+                return [...state, action]
+            }
+        })
+    }
+
+
     return (
         <div className={cx('boxContainer')}>
             <div className="row">
@@ -195,11 +246,10 @@ function Product() {
                     <div className={cx('contenBox')}>
                         <div className={cx('fillter')}>
                             <div className={cx('boxButton')}>
-                                <Button title={'Nike'} active={true} />
-                                <Button title={'Addidas'} />
-                                <Button title={'Puma'} />
-                                <Button title={'Jordan'} />
-                                <Button title={'Mlb'} />
+                                {listBtn.map((item, index) => {
+                                    return <Button title={item} id={index} active={lis.includes(item)} onClicks={() => handlerClick(item)}/>
+                                })}
+                    
                             </div>
                             <div className="col-md-2">
                                 <select id="inputState" className="form-select">
@@ -211,46 +261,45 @@ function Product() {
                         </div>
                         <div className={cx('conten')}>
                             <div className="row">
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
-                                <article className={cx('col-3')}>
-                                    <BoxProduct />
-                                </article>
+                                {lisProduct.map((item, index) => {
+                                    return (
+                                        <article className={cx('col-3')} key={uuidv4()}>
+                                            <BoxProduct
+                                                name={item.name}
+                                                price={item.price}
+                                                img={item.img}
+                                                sale={'40%'}
+                                            />
+                                        </article>
+                                    );
+                                })}
                             </div>
-                            <div className={cx('page')}>
-                                
-                            </div>
+                            {pageCount <= 0 ? (
+                                <div className={cx('tecv')}>Không có sản phẩm nào.</div>
+                            ) : (
+                                <div className={cx('page')}>
+                                    <ReactPaginate
+                                        breakLabel="..."
+                                        nextLabel="next >"
+                                        onPageChange={handlePageClick}
+                                        pageRangeDisplayed={5}
+                                        pageCount={pageCount}
+                                        previousLabel="< previous"
+                                        marginPagesDisplayed={2}
+                                        pageClassName="page-item"
+                                        pageLinkClassName="page-link"
+                                        previousClassName="page-item"
+                                        previousLinkClassName="page-link"
+                                        nextClassName="page-item"
+                                        nextLinkClassName="page-link"
+                                        breakClassName="page-item"
+                                        breakLinkClassName="page-link"
+                                        containerClassName="pagination"
+                                        activeClassName="active"
+                                        renderOnZeroPageCount={null}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

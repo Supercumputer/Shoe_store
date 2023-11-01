@@ -5,15 +5,15 @@ import { Link } from "react-router-dom"
 import { a1, a2, a3, a4 } from "../../assets/image"
 const cx = classNames.bind(styles)
 
-function BoxProduct({name, price, sale, }){
+function BoxProduct({name, price, sale, img }){
     return (
         <div className={cx('box')}>
             <div className={cx('boxImg')}>
-                <Img src={a3} alt=''/>
-                <span className={cx('sale')}>40%</span>
+                <Img src={img} alt=''/>
+                <span className={cx('sale')}>{sale}</span>
             </div>
-            <Link to='/' className={cx('textName')}>Salomon XT-6 Expanse 'Alloy Quiet Shade'</Link>
-            <p>1.920.000₫ <span>2.400.000₫</span></p> 
+            <Link to='/' className={cx('textName')}>{name}</Link>
+            <p>{price}₫ <span>2.400.000₫</span></p> 
         </div>
         
     )
