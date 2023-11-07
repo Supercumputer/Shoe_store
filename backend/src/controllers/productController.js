@@ -1,32 +1,58 @@
 const Pros = require("../models/productModel");
+require("dotenv").config();
 
 const getProduct = async (req, res, next) => {
   try {
-    let pageSize = 12;
-    let page = req.query.page;
+    let {
+      color = "",
+      size = "",
+      price = "",
+      order = "asc",
+      page = 1,
+      fill = "createdAt",
+    } = req.query;
+
+    let pageSize = process.env.PAGE_SIZE;
     let skipItem = (page - 1) * pageSize;
     let searchQuery = req.query.q || "";
-    let data;
-    let totalResults;
+
+    const obj = {};
 
     if (searchQuery) {
-      const regex =
+      obj.name =
         typeof searchQuery === "object"
           ? { $in: [new RegExp(searchQuery.join("|"), "i")] }
           : new RegExp(searchQuery, "i");
-
-      totalResults = await Pros.countDocuments({ name: regex });
-      data = await Pros.find({ name: regex }).skip(skipItem).limit(pageSize);
-    } else {
-      totalResults = await Pros.countDocuments({});
-      data = await Pros.find({}).skip(skipItem).limit(pageSize);
     }
 
-    // if (data.length === 0) {
-    //   return res.status(400).json({
-    //     message: "No product found",
-    //   });
-    // }
+    if (Array.isArray(color) && color.length > 0) {
+      obj.color = { $in: color };
+    } else if (typeof color === "string" && color.trim() !== "") {
+      obj.color = color;
+    }
+
+    if (Array.isArray(size) && size.length > 0) {
+      obj.size = { $in: size };
+    } else if (typeof size === "string" && size.trim() !== "") {
+      obj.size = size;
+    }
+
+    if (price.trim() !== "" && price.trim() !== "All") {
+      if (price === "Trên 500") {
+        let arr = price.split(" ");
+        obj.price = { $gt: arr[1] };
+      } else {
+        let arr = price.split("-");
+        obj.price = { $gte: arr[0], $lte: arr[1] };
+      }
+    }
+
+    
+    let totalResults = await Pros.countDocuments(obj);
+    let data = await Pros.find(obj)
+      .skip(skipItem)
+      .limit(pageSize)
+      .sort({ [fill]: order === "asc" ? 1 : -1 });
 
     let totalPages = Math.ceil(totalResults / pageSize);
 
@@ -98,8 +124,9 @@ const deleteProduct = async (req, res, next) => {
 
 const getProductById = async (req, res, next) => {
   try {
-    let data = Pros.findById({ _id: req.params.id });
-
+    
+    let data = await Pros.findOne({ _id: req.params.id });
+    
     if (!data) {
       return res.status(404).json({
         message: "No product found.",

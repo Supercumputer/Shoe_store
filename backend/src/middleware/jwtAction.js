@@ -17,7 +17,6 @@ const checkToken = (req, res, next) => {
   //   }
 
   let check = req.cookies;
-
   let tokenFromHeader = extrackToken(req);
 
   if ((check && check.jwt) || tokenFromHeader) {
