@@ -7,8 +7,8 @@ const cx = classNames.bind(styles);
 function Contact() {
     return (
         <div className={cx('box')}>
-            <div class={cx('row')}>
-                <div class="col-6">
+            <div className={cx('row')}>
+                <div className="col-6">
                     <div className={cx('boxImg')}>
                         <Img src={contact} alt="" />
                     </div>

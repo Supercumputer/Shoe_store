@@ -1,0 +1,45 @@
+.box{
+    margin-top: 80px;
+}
+
+.boxImg{
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.imgc{
+    width: 100%;
+    height: 500px;
+}
+
+img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.imgp{
+    display: flex;
+    gap: 10px;
+}
+.boxBtn{
+    margin-top: 20px;
+}
+.button {
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px 20px;
+  }
+  
+  .button:hover {
+    background-color: #cacaca;
+  }
+  
+  .count {
+    font-size: 20px;
+    width: 40px;
+    padding: 5px;
+    text-align: center;
+}

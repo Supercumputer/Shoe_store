@@ -1,0 +1,70 @@
+.box{
+    margin-top: 80px;
+}
+
+.boxItem{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    margin: 0 20px 20px 0;
+    background: #fff;
+    box-shadow: 1px 1px 4px 0px #e1e0e0;
+    border-radius: 5px;
+}
+
+.img{
+    width: 100px;
+    height: 100px;
+    border-radius: 5px;
+    overflow: hidden;
+
+    img{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.pro{
+    display: flex;
+    gap: 5px;
+    
+}
+
+.button {
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px 20px;
+  }
+  
+  .button:hover {
+    background-color: #cacaca;
+  }
+  
+  .count {
+    font-size: 20px;
+    width: 40px;
+    padding: 5px;
+    text-align: center;
+  }
+
+.boxCen{
+    color: #fff;
+    height: 150px;
+    padding: 20px;
+    border-radius: 5px;
+}
+  .check{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    input{
+        margin-top: 0;
+    }
+    p{
+        margin-bottom: 0;
+    }
+  }

@@ -5,6 +5,8 @@ import Contact from "../page/Contact/Contact"
 import NewSpay from "../page/NewSpay/NewSpay"
 import Login from "../page/Login/Login"
 import Register from "../page/Register/Register"
+import Cart from "../page/Cart/Cart"
+import ProductItem from "../page/ProductItem/ProductItem"
 
 export const publicRouter = [
     {
@@ -34,10 +36,20 @@ export const publicRouter = [
         path: '/newspay',
         component: NewSpay,
         layout: DefaultLayout
+    },
+   
+    {
+        path: '/productItem/:name',
+        component: ProductItem,
+        layout: DefaultLayout
     }
 ]
 
 export const privateRouter = [
-   
+    {
+        path: '/cart',
+        component: Cart,
+        layout: DefaultLayout
+    }
     
 ]

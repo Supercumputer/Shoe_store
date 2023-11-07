@@ -10,14 +10,15 @@ import { apiGetProducs } from '../../api/service';
 import { useEffect } from 'react';
 import { setProduct } from '../../redux/searchFilter';
 import { listProduct } from '../../redux/selecter';
+import { v4 as uuidv4 } from 'uuid';
 const cx = classNames.bind(styles);
 
 function Home() {
     const dispatch = useDispatch();
     const list = useSelector(listProduct);
-    console.log(list)
+  
     useEffect(() => {
-        callApiLisproduct('', 1);
+        callApiLisproduct(`q=&page=1`);
     }, []);
 
     const callApiLisproduct = async (search, page) => {
@@ -83,8 +84,8 @@ function Home() {
                 <section className={cx('row')}>
                     {list.map((item, index) => {
                         return (
-                            <article className={cx('col-2')}>
-                                <BoxProduct name={item.name} img={item.img} price={item.price} sale={'40%'}/>
+                            <article key={uuidv4()} className={cx('col-2')}>
+                                <BoxProduct  name={item.name} img={item.img} price={item.price} sale={'40%'} id={item._id}/>
                             </article>
                         );
                     })}

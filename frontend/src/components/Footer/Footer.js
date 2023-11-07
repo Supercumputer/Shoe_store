@@ -17,16 +17,16 @@ function Footer() {
                             </p>
                             <div className={cx('boxIcon')}>
                                 <div className={cx('ic')}>
-                                    <i class="bi bi-facebook"></i>
+                                    <i className="bi bi-facebook"></i>
                                 </div>
                                 <div className={cx('ic')}>
-                                    <i class="bi bi-instagram"></i>
+                                    <i className="bi bi-instagram"></i>
                                 </div>
                                 <div className={cx('ic')}>
-                                    <i class="bi bi-tiktok"></i>
+                                    <i className="bi bi-tiktok"></i>
                                 </div>
                                 <div className={cx('ic')}>
-                                    <i class="bi bi-youtube"></i>
+                                    <i className="bi bi-youtube"></i>
                                 </div>
                             </div>
                         </div>

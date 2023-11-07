@@ -3,34 +3,84 @@ import styles from './Product.module.scss';
 import Button from '../../components/Button/Button';
 import BoxProduct from '../../components/BoxProduct/BoxProduct';
 import { useSelector, useDispatch } from 'react-redux';
-import { lisFroductFilter, count } from '../../redux/selecter';
+import { listProduct, count } from '../../redux/selecter';
 import { useEffect } from 'react';
-import { setProduct, setFilterSearch } from '../../redux/searchFilter';
+import { setProduct, setFilterPrice, setFilterColor, setFilterSize } from '../../redux/searchFilter';
 import { apiGetProducs } from '../../api/service';
 import ReactPaginate from 'react-paginate';
 import { useState } from 'react';
-
-
 import { v4 as uuidv4 } from 'uuid';
+
+import CheckExample from '../../components/CheckFilter/CheckFilter';
 
 const cx = classNames.bind(styles);
 
 const listBtn = ['Nike', 'Addidas', 'Puma', 'Jordan', 'Mlb'];
+const listSize = ['S', 'L', 'M', 'Xl', 'XXL'];
+const listColor = ['Red', 'Blue', 'White', 'Yellow'];
+const ListPrice = [
+    {
+        title: 'All',
+        price: '',
+    },
+    {
+        title: '100-200',
+        price: { start: 100, stop: 200 },
+    },
+    {
+        title: '200-300',
+        price: { start: 200, stop: 300 },
+    },
+    {
+        title: '300-400',
+        price: { start: 300, stop: 400 },
+    },
+    {
+        title: '400-500',
+        price: { start: 400, stop: 500 },
+    },
+    {
+        title: 'Trên 500',
+        price: 500,
+    },
+];
 
 function Product() {
-    const lisProduct = useSelector(lisFroductFilter);
-    const pageCount = useSelector(count);
-    const [lis, setList] = useState([])
-    console.log(lis)
     const dispatch = useDispatch();
+    const lisProduct = useSelector(listProduct);
+    const pageCount = useSelector(count);
+    const [lis, setList] = useState([]);
+    const [size, setSize] = useState([]);
+    const [color, setColor] = useState([]);
+    const [price, setPrice] = useState('All');
+    const [checks, setChecks] = useState(true);
+    const [checkc, setCheckc] = useState(true);
 
     useEffect(() => {
-        callApiLisproduct(lis.join('&q='), 1);
-    }, [lis]);
+        callApiLisproduct(
+            `q=${lis.join('&q=')}&page=1&size=${size.join('&size=')}&color=${color.join('&color=')}&price=${price}`,
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lis, size, color, price]);
 
-    const callApiLisproduct = async (search, page) => {
+    const handlerSort = async (e) => {
         try {
-            let res = await apiGetProducs(search, page);
+            let res = await apiGetProducs(
+                `q=${lis.join('&q=')}&fill=price&order=${e.target.value}&size=${size.join('&size=')}&color=${color.join(
+                    '&color=',
+                )}&price=${price}`,
+            );
+            if (res && res.status === 200) {
+                dispatch(setProduct(res.data));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const callApiLisproduct = async (data) => {
+        try {
+            let res = await apiGetProducs(data);
             if (res && res.status === 200) {
                 dispatch(setProduct(res.data));
             }
@@ -41,21 +91,73 @@ function Product() {
 
     const handlePageClick = (e) => {
         let page = e.selected + 1;
-        callApiLisproduct('', page);
+        callApiLisproduct(
+            `q=${lis.join('&q=')}&page=${page}&size=${size.join('&size=')}&color=${color.join(
+                '&color=',
+            )}&price=${price}`,
+        );
     };
 
     const handlerClick = (action) => {
-        
-        setList(state => {
-            let click = lis.includes(action)
-            if(click){
-                return lis.filter((item) => item !== action) 
-            }else{
-                return [...state, action]
+        setList((state) => {
+            let click = lis.includes(action);
+            if (click) {
+                return lis.filter((item) => item !== action);
+            } else {
+                return [...state, action];
             }
-        })
-    }
+        });
+    };
 
+    const handlerFilter = (item, action) => {
+        // eslint-disable-next-line default-case
+        switch (action) {
+            case 'size':
+                setSize((state) => {
+                    let li = size.includes(item);
+                    let data = [];
+
+                    if (li) {
+                        data = size.filter((items) => items !== item);
+                    } else {
+                        data = [...state, item];
+                    }
+                    if (data.length >= 5 || data.length === 0) {
+                        setChecks(true);
+                    } else {
+                        setChecks(false);
+                    }
+                    dispatch(setFilterSize(data));
+                    return data;
+                });
+                break;
+            // eslint-disable-next-line no-fallthrough
+            case 'color':
+                setColor((state) => {
+                    let li = color.includes(item);
+                    let data = [];
+
+                    if (li) {
+                        data = color.filter((items) => items !== item);
+                    } else {
+                        data = [...state, item];
+                    }
+                    if (data.length >= 4 || data.length === 0) {
+                        setCheckc(true);
+                    } else {
+                        setCheckc(false);
+                    }
+                    dispatch(setFilterColor(data));
+                    return data;
+                });
+                break;
+        }
+    };
+
+    const handlerPrice = (e) => {
+        setPrice(e.target.value);
+        dispatch(setFilterPrice(price));
+    };
 
     return (
         <div className={cx('boxContainer')}>
@@ -63,182 +165,50 @@ function Product() {
                 <div className="col-2">
                     <div className={cx('aside')}>
                         <div className={cx('box1')}>
-                            <p>Catenory</p>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="flexRadioDefault"
-                                    id="flexRadioDefault1"
-                                />
-                                <label className="form-check-label" for="flexRadioDefault1">
-                                    All
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="flexRadioDefault"
-                                    id="flexRadioDefault1"
-                                />
-                                <label className="form-check-label" for="flexRadioDefault1">
-                                    Sneakers
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="flexRadioDefault"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    Flats
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="flexRadioDefault"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    Sandas
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="flexRadioDefault"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    Heels
-                                </label>
-                            </div>
+                            <p>Size</p>
+                            <CheckExample laybal="All" type="checkbox" check={checks} />
+                            {listSize.map((item) => {
+                                return (
+                                    <CheckExample
+                                        key={uuidv4()}
+                                        laybal={item}
+                                        type="checkbox"
+                                        check={size.includes(item)}
+                                        handler={() => handlerFilter(item, 'size')}
+                                    />
+                                );
+                            })}
                         </div>
+
                         <div className={cx('box1')}>
                             <p>Price</p>
-                            <div className="form-check">
-                                <input className="form-check-input" type="radio" name="price" id="flexRadioDefault1" />
-                                <label className="form-check-label" for="flexRadioDefault1">
-                                    All
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="price"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    100-200
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="price"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    200-300
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="price"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    300-400
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="price"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    400-500
-                                </label>
-                            </div>
+                            {ListPrice.map((item) => {
+                                return (
+                                    <CheckExample
+                                        key={uuidv4()}
+                                        laybal={item.title}
+                                        value={item.price}
+                                        handler={(e) => handlerPrice(e)}
+                                        check={price.includes(item.title)}
+                                    />
+                                );
+                            })}
                         </div>
+
                         <div className={cx('box1')}>
                             <p>Color</p>
-                            <div className="form-check">
-                                <input className="form-check-input" type="radio" name="Color" id="flexRadioDefault1" />
-                                <label className="form-check-label" for="flexRadioDefault1">
-                                    All
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="Color"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    Black
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="Color"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    Blue
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="Color"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    Red
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="Color"
-                                    id="flexRadioDefault2"
-                                    checked
-                                />
-
-                                <label className="form-check-label" for="flexRadioDefault2">
-                                    White
-                                </label>
-                            </div>
+                            <CheckExample laybal="All" type="checkbox" check={checkc} />
+                            {listColor.map((item) => {
+                                return (
+                                    <CheckExample
+                                        key={uuidv4()}
+                                        laybal={item}
+                                        type="checkBox"
+                                        check={color.includes(item)}
+                                        handler={() => handlerFilter(item, 'color')}
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -247,15 +217,22 @@ function Product() {
                         <div className={cx('fillter')}>
                             <div className={cx('boxButton')}>
                                 {listBtn.map((item, index) => {
-                                    return <Button title={item} id={index} active={lis.includes(item)} onClicks={() => handlerClick(item)}/>
+                                    return (
+                                        <Button
+                                            key={uuidv4()}
+                                            title={item}
+                                            id={index}
+                                            active={lis.includes(item)}
+                                            onClicks={() => handlerClick(item)}
+                                        />
+                                    );
                                 })}
-                    
                             </div>
                             <div className="col-md-2">
-                                <select id="inputState" className="form-select">
-                                    <option selected>Giá</option>
-                                    <option>Từ thấp đến cao</option>
-                                    <option>Từ cao đến thấp</option>
+                                <select id="inputState" defaultValue="" className="form-select" onChange={handlerSort}>
+                                    <option value="">Giá</option>
+                                    <option value="asc">Từ thấp đến cao</option>
+                                    <option value="desc">Từ cao đến thấp</option>
                                 </select>
                             </div>
                         </div>
@@ -265,10 +242,12 @@ function Product() {
                                     return (
                                         <article className={cx('col-3')} key={uuidv4()}>
                                             <BoxProduct
+                                                key={uuidv4()}
                                                 name={item.name}
                                                 price={item.price}
                                                 img={item.img}
                                                 sale={'40%'}
+                                                id={item._id}
                                             />
                                         </article>
                                     );

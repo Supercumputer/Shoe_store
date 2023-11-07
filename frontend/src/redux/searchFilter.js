@@ -8,20 +8,33 @@ export const productSlice = createSlice({
         filter: {
             search: '',
             price: '',
-            color: '',
+            color: [],
+            size: [],
         },
     },
     reducers: {
         setProduct: (state, action) => {
             state.listProduct = action.payload.data;
-            state.pageCount = action.payload.totalPages
+            state.pageCount = action.payload.totalPages;
         },
 
         setFilterSearch: (state, action) => {
-            state.filter.search = action.payload
-        }
+            state.filter.search = action.payload;
+        },
+
+        setFilterPrice: (state, action) => {
+            state.filter.price = action.payload;
+        },
+
+        setFilterColor: (state, action) => {
+            state.filter.color = action.payload;
+        },
+
+        setFilterSize: (state, action) => {
+            state.filter.size = action.payload;
+        },
     },
 });
 
-export const { setProduct, setFilterSearch } = productSlice.actions;
+export const { setProduct, setFilterSearch, setFilterPrice, setFilterColor, setFilterSize } = productSlice.actions;
 export default productSlice.reducer;
