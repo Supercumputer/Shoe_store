@@ -1,6 +1,6 @@
 const { verifyToken } = require("../service/authentication");
 
-const nextPath = ["/getacount"];
+const nextPath = ["/login", "register", "/logout", "/refreshtoken"];
 
 const extrackToken = (req) => {
   if (
@@ -11,20 +11,18 @@ const extrackToken = (req) => {
   }
 };
 
-const checkToken = (req, res, next) => {
-  //   if (nextPath.includes(req.path)) {
-  //     return next();
-  //   }
-
-  let check = req.cookies;
+const verifyAccessToken = (req, res, next) => {
+  if (nextPath.includes(req.path)) {
+    return next();
+  }
+  // let check = req.cookies;
   let tokenFromHeader = extrackToken(req);
 
-  if ((check && check.jwt) || tokenFromHeader) {
-    let token = check && check.jwt ? check.jwt : tokenFromHeader;
-    let decode = verifyToken(token);
+  if (tokenFromHeader) {
+    let decode = verifyToken(tokenFromHeader);
+
     if (decode) {
       req.user = decode;
-      req.token = token;
       next();
     } else {
       return res.status(401).json({
@@ -33,9 +31,9 @@ const checkToken = (req, res, next) => {
     }
   } else {
     return res.status(401).json({
-      message: "You are not logged in s",
+      message: "You are not logged in",
     });
   }
 };
 
-module.exports = { checkToken };
+module.exports = { verifyAccessToken };

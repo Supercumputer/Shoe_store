@@ -5,16 +5,27 @@ const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
 const jwt = require("jsonwebtoken");
 
-const createToken = (data) => {
+const generateAccessToken = (data) => {
   let key = process.env.JWT_SERVICE;
   let token = null;
   try {
-    token = jwt.sign(data, key);
+    token = jwt.sign(data, key, {expiresIn: '3d'});
   } catch (error) {
     console.log(error);
   }
   return token;
 };
+
+const gennerateRefreshToken = (data) => {
+  let key = process.env.JWT_SERVICE;
+  let token = null;
+  try {
+    token = jwt.sign(data, key, {expiresIn: '7d'});
+  } catch (error) {
+    console.log(error);
+  }
+  return token;
+}
 
 const verifyToken = (token) => {
     let key = process.env.JWT_SERVICE;
@@ -46,4 +57,4 @@ const checkEmail = async (email) => {
   return false;
 };
 
-module.exports = { checkEmail, comparePassword, hashPassword, createToken, verifyToken };
+module.exports = { checkEmail, comparePassword, hashPassword, generateAccessToken, gennerateRefreshToken, verifyToken };

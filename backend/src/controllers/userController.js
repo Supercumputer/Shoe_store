@@ -6,7 +6,9 @@ const {
   checkEmail,
   hashPassword,
   comparePassword,
-  createToken,
+  generateAccessToken,
+  gennerateRefreshToken,
+  verifyToken,
 } = require("../service/authentication");
 
 const register = async (req, res, next) => {
@@ -63,24 +65,30 @@ const login = async (req, res, next) => {
       let checkPass = comparePassword(passWord, data.passWord);
 
       if (checkPass) {
-        const {passWord, role, ...userData} = data
+        const { passWord, role, ...userData } = data.toObject();
 
         const payload = {
-          email: data.email,
-          //expiresIn ngày hết hạn
-          expiresIn: process.env.JWT_EXPIRESIN,
+          id: userData._id,
+          role: userData.role,
         };
 
-        let token = createToken(payload);
+        const accessToken = generateAccessToken(payload);
+        const refreshToken = gennerateRefreshToken(payload);
 
-        res.cookie("JWT", token, {
+        await Users.findByIdAndUpdate(
+          data._id,
+          { refreshToken },
+          { new: true }
+        );
+
+        res.cookie("JWT", refreshToken, {
           maxAge: process.env.JWT_EXPIRESIN,
           httpOnly: true,
         });
 
         return res.status(200).json({
-          token: token,
-          userData
+          accessToken,
+          userData,
         });
       } else {
         return res.status(401).json({
@@ -99,9 +107,22 @@ const login = async (req, res, next) => {
   }
 };
 
-const logout = (req, res, next) => {
+const logout = async (req, res, next) => {
   try {
-    res.clearCookie("jwt");
+    const cookie = req.cookies;
+    if (!cookie && !cookie.JWT) {
+      return res.status(400).json({
+        message: "No refresh token in cookie.",
+      });
+    }
+
+    await Users.updateOne(
+      { refreshToken: cookie.JWT },
+      { refreshToken: "" },
+      { new: true }
+    );
+
+    res.clearCookie("JWT", {httpOnly: true, secure: true});
     return res.status(200).json({
       message: "Logout success",
     });
@@ -112,17 +133,47 @@ const logout = (req, res, next) => {
   }
 };
 
-const getAcount = (req, res, next) => {
+const getAcount = async (req, res, next) => {
   try {
+    const { id } = req.user;
+    const userData = await Users.findById({ _id: id }).select(
+      "-passWord -role -refreshToken"
+    );
+
     return res.status(200).json({
-      token: req.token,
-      acount: {
-        email: req.user.email,
-      },
+      userData,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { register, login, logout, getAcount };
+const refreshAccessToken = async (req, res, next) => {
+  try {
+    const cookie = req.cookies;
+
+    if (!cookie) {
+      return res.status(400).json({ message: "No refresh token in cookie" });
+    }
+
+    const tokenId = verifyToken(cookie.JWT);
+
+    const userData = await Users.findById({ _id: tokenId.id });
+
+    const payload = {
+      id: userData._id,
+      role: userData.role,
+    };
+
+    return res.status(200).json({
+      message: "Refresh token success.",
+      newAccessToken: userData
+        ? generateAccessToken(payload)
+        : "Refresh token not matched",
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { register, login, logout, getAcount, refreshAccessToken };
