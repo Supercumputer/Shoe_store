@@ -1,6 +1,6 @@
 const { verifyToken } = require("../service/authentication");
 
-const nextPath = ["/login", "register", "/logout", "/refreshtoken"];
+const nextPath = ["/login", "/register", "/logout", "/refreshtoken", "/forgotpassword", "/resetpassword"];
 
 const extrackToken = (req) => {
   if (

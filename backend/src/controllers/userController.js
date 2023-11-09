@@ -1,5 +1,5 @@
 const Users = require("../models/userModel");
-
+const sendMail = require("../service/sendMail");
 require("dotenv").config();
 
 const {
@@ -9,6 +9,7 @@ const {
   generateAccessToken,
   gennerateRefreshToken,
   verifyToken,
+  createPassWordChangeToken,
 } = require("../service/authentication");
 
 const register = async (req, res, next) => {
@@ -65,7 +66,7 @@ const login = async (req, res, next) => {
       let checkPass = comparePassword(passWord, data.passWord);
 
       if (checkPass) {
-        const { passWord, role, ...userData } = data.toObject();
+        const { passWord, role, refreshToken: refToken, ...userData } = data.toObject();
 
         const payload = {
           id: userData._id,
@@ -122,7 +123,7 @@ const logout = async (req, res, next) => {
       { new: true }
     );
 
-    res.clearCookie("JWT", {httpOnly: true, secure: true});
+    res.clearCookie("JWT", { httpOnly: true, secure: true });
     return res.status(200).json({
       message: "Logout success",
     });
@@ -176,4 +177,93 @@ const refreshAccessToken = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, logout, getAcount, refreshAccessToken };
+const forgotPassWord = async (req, res, next) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({
+        message: "Missing email.",
+      });
+    }
+
+    const user = Users.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found.",
+      });
+    }
+
+    const resetToken = createPassWordChangeToken();
+    const expiresIn = Date.now() + +process.env.PASSWORD_TOKEN_EXPIRESIN;
+
+    await Users.updateOne(
+      { email },
+      {
+        $set: {
+          passwordResetToken: resetToken,
+          passwordResetExpires: expiresIn,
+        },
+      }
+    );
+
+    const html = `Xin vui lòng click vào link dưới đây để thay đổi mật khẩu của bạn. Link này sẽ hết hạn sau 15 phút kể từ bây giờ. <a href=${process.env.URL_SERVER}/api/user/reset-password/${resetToken}>Click here.</a>`;
+
+    const data = { email, html };
+
+    const infor = await sendMail(data);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Send email success.",
+      infor,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const resetPassWord = async (req, res, next) => {
+  try {
+    const { passWord, token } = req.body;
+
+    if(!passWord || !token){
+      return res.status(400).json({
+        message: 'Password or token not found.'
+      })
+    }
+
+    const user = await Users.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalit reset token.",
+      });
+    }
+
+    user.passWord = passWord;
+    user.passwordChangedAt = Date.now();
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Update passWord success",
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  logout,
+  getAcount,
+  refreshAccessToken,
+  forgotPassWord,
+  resetPassWord,
+};

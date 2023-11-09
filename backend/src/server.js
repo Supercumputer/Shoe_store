@@ -5,13 +5,13 @@ const router = require("./routes/index");
 const connectDb = require('./config/connectDb')
 const cookieParser = require("cookie-parser");
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 3001;
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", process.env.JWT_LOCALHOST);
+  res.header("Access-Control-Allow-Origin", process.env.URL_CLIENT);
   res.header(
     "Access-Control-Allow-Methods",
     "POST, GET, PUT,PATCH, DELETE, OPTIONS, "
