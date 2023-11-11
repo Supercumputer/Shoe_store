@@ -1,7 +1,54 @@
-const Pros = require("../models/productModel");
+const Products = require("../models/productModel");
 require("dotenv").config();
 
+const createProduct = async (req, res, next) => {
+  try {
+    const { title } = req.body;
+
+    if (!title || Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        message: "Input missing.",
+      });
+    }
+
+    await Products.create(req.body);
+
+    return res.status(200).json({
+      message: "Create product success.",
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 const getProduct = async (req, res, next) => {
+  try {
+    const slug = req.params.slug;
+
+    if (!slug) {
+      return res.status(400).json({
+        message: "Input missing.",
+      });
+    }
+
+    const data = await Products.findOne({ slug });
+
+    if (!data) {
+      return res.status(400).json({
+        message: "Product not found.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Get product success.",
+      data,
+    });
+  } catch (error) {
+    return res.status(500).json({message: error.message});
+  }
+};
+
+const getProducts = async (req, res, next) => {
   try {
     let {
       color = "",
@@ -47,9 +94,8 @@ const getProduct = async (req, res, next) => {
       }
     }
 
-    
-    let totalResults = await Pros.countDocuments(obj);
-    let data = await Pros.find(obj)
+    let totalResults = await Products.countDocuments(obj);
+    let data = await Products.find(obj)
       .skip(skipItem)
       .limit(pageSize)
       .sort({ [fill]: order === "asc" ? 1 : -1 });
@@ -66,38 +112,22 @@ const getProduct = async (req, res, next) => {
   }
 };
 
-const createProduct = async (req, res, next) => {
-  try {
-    const { name, description } = req.body;
-
-    if (!name || !description) {
-      return res.status(400).json({
-        message: "You have to enter all data fields.",
-      });
-    }
-
-    await Pros.create(req.body);
-
-    return res.status(200).json({
-      message: "Create product success.",
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
 const updateProduct = async (req, res, next) => {
   try {
-    let data = await Pros.findById({ _id: req.params.id });
+    const id = req.params.id
+    
+    if(!id || Object.keys(req.body).length === 0){
+      return res.status(400).json({message: "Input missing."})
+    }
 
-    if (data) {
-      await Pros.updateOne({ _id: req.params.id }, req.body);
-
-      return res.status(200).json({
-        message: "update user success.",
-      });
+    const data = await Products.updateOne({ _id: id }, req.body, {new: true});
+    
+    if (data.matchedCount === 1) {
+        return res.status(200).json({
+          message: "update user success.",
+        });
     } else {
-      return res.status(404).json({ message: "No product found." });
+        return res.status(400).json({ message: "Update failure." });
     }
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -106,16 +136,22 @@ const updateProduct = async (req, res, next) => {
 
 const deleteProduct = async (req, res, next) => {
   try {
-    let data = await Pros.findById({ _id: req.params.id });
+    const id = req.params.id
+    
+    if(!id){
+      return res.status(400).json({message: "Input missing."})
+    }
 
-    if (data) {
-      await Pros.deleteOne({ _id: req.params.id });
+    let data = await Products.deleteOne({ _id: id });
 
+    if (data.deletedCount === 1) {
       return res.status(200).json({
-        message: "delete user success.",
+        message: "Delete user success.",
       });
     } else {
-      return res.status(404).json({ message: "No product found." });
+      return res.status(400).json({
+        message: "User not found or not deleted",
+      });
     }
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -124,9 +160,8 @@ const deleteProduct = async (req, res, next) => {
 
 const getProductById = async (req, res, next) => {
   try {
-    
-    let data = await Pros.findOne({ _id: req.params.id });
-    
+    let data = await Products.findOne({ _id: req.params.id });
+
     if (!data) {
       return res.status(404).json({
         message: "No product found.",
@@ -143,9 +178,10 @@ const getProductById = async (req, res, next) => {
 };
 
 module.exports = {
-  getProduct,
-  getProductById,
   createProduct,
+  getProduct,
+  getProducts,
+  getProductById,
   deleteProduct,
   updateProduct,
 };

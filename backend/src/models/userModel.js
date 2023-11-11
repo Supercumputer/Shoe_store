@@ -39,7 +39,7 @@ const user = new Schema(
     },
     role: {
       type: String,
-      default: "",
+      default: "User",
     },
     cart: {
       type: Array,

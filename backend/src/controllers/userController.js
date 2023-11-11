@@ -36,7 +36,6 @@ const register = async (req, res, next) => {
 
     await Users.create({
       ...req.body,
-      userName: `${req.body.lastName} ${req.body.firstName}`,
       passWord: newPassWord,
     });
 
@@ -66,11 +65,16 @@ const login = async (req, res, next) => {
       let checkPass = comparePassword(passWord, data.passWord);
 
       if (checkPass) {
-        const { passWord, role, refreshToken: refToken, ...userData } = data.toObject();
+        const {
+          passWord,
+          role,
+          refreshToken: refToken,
+          ...userData
+        } = data.toObject();
 
         const payload = {
           id: userData._id,
-          role: userData.role,
+          role,
         };
 
         const accessToken = generateAccessToken(payload);
@@ -134,7 +138,7 @@ const logout = async (req, res, next) => {
   }
 };
 
-const getAcount = async (req, res, next) => {
+const getAccount = async (req, res, next) => {
   try {
     const { id } = req.user;
     const userData = await Users.findById({ _id: id }).select(
@@ -226,10 +230,10 @@ const resetPassWord = async (req, res, next) => {
   try {
     const { passWord, token } = req.body;
 
-    if(!passWord || !token){
+    if (!passWord || !token) {
       return res.status(400).json({
-        message: 'Password or token not found.'
-      })
+        message: "Password or token not found.",
+      });
     }
 
     const user = await Users.findOne({
@@ -243,7 +247,9 @@ const resetPassWord = async (req, res, next) => {
       });
     }
 
-    user.passWord = passWord;
+    let newPassWord = hashPassword(passWord);
+
+    user.passWord = newPassWord;
     user.passwordChangedAt = Date.now();
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
@@ -258,12 +264,104 @@ const resetPassWord = async (req, res, next) => {
   }
 };
 
+const getAllUsers = async (req, res, next) => {
+  try {
+    const userData = await Users.find({}).select(
+      "-passWord -role -refreshToken"
+    );
+    return res.status(200).json({
+      message: "Get all users success.",
+      userData,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const updateUser = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+    console.log(id);
+    const data = req.body;
+
+    if (!id || Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        message: "Id update not found",
+      });
+    }
+
+    await Users.findByIdAndUpdate({ _id: id }, data, { new: true });
+
+    return res.status(200).json({
+      message: "Update user success.",
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+
+    if (!id) {
+      return res.status(400).json({
+        message: "You have not transmitted ID.",
+      });
+    }
+
+    let data = await Users.deleteOne({ _id: id });
+ 
+    if (data.deletedCount === 1) {
+      return res.status(200).json({
+        message: "Delete user success.",
+      });
+    } else {
+      return res.status(400).json({
+        message: "User not found or not deleted",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const updateUserAdmin = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+
+    if (!id || Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        message: "You have not transmitted ID.",
+      });
+    }
+
+    let data = await Users.updateOne({ _id: id }, req.body);
+
+    if (data.matchedCount === 1) {
+      return res.status(200).json({
+        message: "User updated successfully.",
+      });
+    } else {
+      return res.status(400).json({
+        message: "User not found or not updated",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
-  getAcount,
+  getAccount,
   refreshAccessToken,
   forgotPassWord,
   resetPassWord,
+  getAllUsers,
+  updateUser,
+  updateUserAdmin,
+  deleteUser,
 };
