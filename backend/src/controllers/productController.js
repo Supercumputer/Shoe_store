@@ -44,7 +44,7 @@ const getProduct = async (req, res, next) => {
       data,
     });
   } catch (error) {
-    return res.status(500).json({message: error.message});
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -114,20 +114,20 @@ const getProducts = async (req, res, next) => {
 
 const updateProduct = async (req, res, next) => {
   try {
-    const id = req.params.id
-    
-    if(!id || Object.keys(req.body).length === 0){
-      return res.status(400).json({message: "Input missing."})
+    const id = req.params.id;
+
+    if (!id || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ message: "Input missing." });
     }
 
-    const data = await Products.updateOne({ _id: id }, req.body, {new: true});
-    
+    const data = await Products.updateOne({ _id: id }, req.body, { new: true });
+
     if (data.matchedCount === 1) {
-        return res.status(200).json({
-          message: "update user success.",
-        });
+      return res.status(200).json({
+        message: "update user success.",
+      });
     } else {
-        return res.status(400).json({ message: "Update failure." });
+      return res.status(400).json({ message: "Update failure." });
     }
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -136,10 +136,10 @@ const updateProduct = async (req, res, next) => {
 
 const deleteProduct = async (req, res, next) => {
   try {
-    const id = req.params.id
-    
-    if(!id){
-      return res.status(400).json({message: "Input missing."})
+    const id = req.params.id;
+
+    if (!id) {
+      return res.status(400).json({ message: "Input missing." });
     }
 
     let data = await Products.deleteOne({ _id: id });
@@ -177,6 +177,53 @@ const getProductById = async (req, res, next) => {
   }
 };
 
+const ratingProduct = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+
+    const { start, comment, id: idsp } = req.body;
+
+    if (!start || !idsp) {
+      return res.status(400).json({
+        message: "Missing inputs",
+      });
+    }
+
+    const ratingPro = await Products.findById({ _id: idsp });
+
+    const checkRating = ratingPro?.ratings?.find(
+      (el) => el.postedBy.toString() === id
+    );
+
+    if (checkRating) {
+      await Products.updateOne(
+        {
+          ratings: { $elemMatch: checkRating },
+        },
+        {
+          $set: {
+            "ratings.$.start": start,
+            "ratings.$.comment": comment,
+          },
+        },
+        {
+          new: true,
+        }
+      );
+    } else {
+      await Products.findByIdAndUpdate(
+        { _id: idsp },
+        { $push: { ratings: { start, comment, postedBy: id } } },
+        { new: true }
+      );
+    }
+
+    return res.status(200).json({ message: "Rating success." });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createProduct,
   getProduct,
@@ -184,4 +231,5 @@ module.exports = {
   getProductById,
   deleteProduct,
   updateProduct,
+  ratingProduct,
 };
